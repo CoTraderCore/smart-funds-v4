@@ -61,7 +61,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   uint256 constant private INITIAL_SHARES = 10 ** 18;
 
   // Total amount of ether deposited by all users
-  uint256 public totalEtherDeposited = 0;
+  uint256 public totalUSDDeposited = 0;
 
   // Total amount of ether withdrawn by all users
   uint256 public totalEtherWithdrawn = 0;
@@ -164,6 +164,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     // Initial Token is Ether
     tokenAddresses.push(address(ETH_TOKEN_ADDRESS));
+    // Push stable coin
+    tokenAddresses.push(_stableCoinAddress);
 
     // Initial interfaces
     exchangePortal = ExchangePortalInterface(_exchangePortalAddress);
@@ -172,30 +174,33 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     permittedStabels = PermittedStabels(_permittedStabels);
     poolPortal = PoolPortalInterface(_poolPortalAddress);
 
-    // Initial stable coin address 
+    // Initial stable coin address
     stableCoinAddress = _stableCoinAddress;
 
     emit SmartFundCreated(owner);
   }
 
   /**
-  * @dev Deposits ether into the fund and allocates a number of shares to the sender
+  * @dev Deposits stable soin into the fund and allocates a number of shares to the sender
   * depending on the current number of shares, the funds value, and amount deposited
   *
   * @return The amount of shares allocated to the depositor
   */
-  function deposit() external payable returns (uint256) {
+  function deposit(uint256 depositAmount) external returns (uint256) {
     // Check if the sender is allowed to deposit into the fund
     if (onlyWhitelist)
       require(whitelist[msg.sender]);
 
     // Require that the amount sent is not 0
-    require(msg.value != 0);
+    require(depositAmount > 0);
 
-    totalEtherDeposited += msg.value;
+    // Transfer stable coin from sender
+    require(ERC20(stableCoinAddress).transferFrom(msg.sender, depositAmount));
+
+    totalUSDDeposited += depositAmount;
 
     // Calculate number of shares
-    uint256 shares = calculateDepositToShares(msg.value);
+    uint256 shares = calculateDepositToShares(depositAmount);
 
     // If user would receive 0 shares, don't continue with deposit
     require(shares != 0);
@@ -206,9 +211,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // Add shares to address
     addressToShares[msg.sender] = addressToShares[msg.sender].add(shares);
 
-    addressesNetDeposit[msg.sender] += int256(msg.value);
+    addressesNetDeposit[msg.sender] += int256(depositAmount);
 
-    emit Deposit(msg.sender, msg.value, shares, totalShares);
+    emit Deposit(msg.sender, depositAmount, shares, totalShares);
 
     return shares;
   }
@@ -473,8 +478,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
       amounts[i-1] = ERC20(tokenAddresses[i]).balanceOf(address(this));
     }
 
-    // Ask the Exchange Portal for the value of all the funds tokens in eth
-    uint256 tokensValue = exchangePortal.getTotalValue(fromAddresses, amounts, ETH_TOKEN_ADDRESS);
+    // Ask the Exchange Portal for the value of all the funds tokens in stable coin
+    uint256 tokensValue = exchangePortal.getTotalValue(fromAddresses, amounts, stableCoinAddress);
 
     // Sum ETH + ERC20
     return ethBalance + tokensValue;
@@ -491,7 +496,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
       return address(this).balance;
     uint256 tokenBalance = _token.balanceOf(address(this));
 
-    return exchangePortal.getValue(_token, ETH_TOKEN_ADDRESS, tokenBalance);
+    return exchangePortal.getValue(_token, stableCoinAddress, tokenBalance);
   }
 
   /**
@@ -573,15 +578,15 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // withdrawn by investors as well as ether withdrawn by the fund manager
     // NOTE: value can be negative if the manager performs well and investors withdraw more
     // ether than they deposited
-    int256 curTotalEtherDeposited = int256(totalEtherDeposited) - int256(totalEtherWithdrawn.add(fundManagerCashedOut));
+    int256 curTotalUSDDeposited = int256(totalUSDDeposited) - int256(totalEtherWithdrawn.add(fundManagerCashedOut));
 
     // If profit < 0, the fund managers totalCut and remainingCut are 0
-    if (int256(fundValue) <= curTotalEtherDeposited) {
+    if (int256(fundValue) <= curTotalUSDDeposited) {
       fundManagerTotalCut = 0;
       fundManagerRemainingCut = 0;
     } else {
       // calculate profit. profit = current fund value - total deposited + total withdrawn + total withdrawn by fm
-      uint256 profit = uint256(int256(fundValue) - curTotalEtherDeposited);
+      uint256 profit = uint256(int256(fundValue) - curTotalUSDDeposited);
       // remove the money already taken by the fund manager and take percentage
       fundManagerTotalCut = profit.mul(successFee).div(TOTAL_PERCENTAGE);
       fundManagerRemainingCut = fundManagerTotalCut.sub(fundManagerCashedOut);
@@ -628,7 +633,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   function calculateFundProfit() public view returns (int256) {
     uint256 fundValue = calculateFundValue();
 
-    return int256(fundValue) + int256(totalEtherWithdrawn) - int256(totalEtherDeposited);
+    return int256(fundValue) + int256(totalEtherWithdrawn) - int256(totalUSDDeposited);
   }
 
   // This method was added to easily record the funds token balances, may (should?) be removed in the future
