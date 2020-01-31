@@ -21,7 +21,7 @@ import "../interfaces/PermittedExchangesInterface.sol";
 */
 
 /*
-  Note: this smart fund make core operations like deposit, calculate fund value etc in ETH
+  Note: this smart fund make core operations like deposit, calculate fund value etc in USD
 */
 contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   using SafeMath for uint256;
@@ -62,11 +62,11 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // Denomination of initial shares
   uint256 constant private INITIAL_SHARES = 10 ** 18;
 
-  // Total amount of ether deposited by all users
+  // Total amount of USD deposited by all users
   uint256 public totalUSDDeposited = 0;
 
-  // Total amount of ether withdrawn by all users
-  uint256 public totalEtherWithdrawn = 0;
+  // Total amount of USD withdrawn by all users
+  uint256 public totalUSDWithdrawn = 0;
 
   // The percentage of earnings paid to the fund manager. 10000 = 100%
   // e.g. 10% is 1000
@@ -266,10 +266,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
     _withdraw(withdrawShares, totalShares, msg.sender);
 
-    // Store the value we are withdrawing in ether
+    // Store the value we are withdrawing in USD
     uint256 valueWithdrawn = fundValue.mul(withdrawShares).div(totalShares);
 
-    totalEtherWithdrawn = totalEtherWithdrawn.add(valueWithdrawn);
+    totalUSDWithdrawn = totalUSDWithdrawn.add(valueWithdrawn);
     addressesNetDeposit[msg.sender] -= int256(valueWithdrawn);
 
     // Subtract from total shares the number of withdrawn shares
@@ -430,9 +430,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
   /**
-  * @dev Calculates the amount of shares received according to ether deposited
+  * @dev Calculates the amount of shares received according to USD deposited
   *
-  * @param _amount    Amount of ether to convert to shares
+  * @param _amount    Amount of USD to convert to shares
   *
   * @return Amount of shares to be received
   */
@@ -458,14 +458,18 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
 
   /**
-  * @dev Calculates the funds value in deposit token (Ether)
+  * @dev Calculates the funds value in deposit token (USD)
   *
   * @return The current total fund value
   */
   function calculateFundValue() public view returns (uint256) {
-    uint256 ethBalance = address(this).balance;
+    // Convert ETH balance to USD
+    uint256 ethBalance = exchangePortal.getValue(
+      ETH_TOKEN_ADDRESS,
+      stableCoinAddress,
+      address(this).balance);
 
-    // If the fund only contains ether, return the funds ether balance
+    // If the fund only contains ether, return the funds ether balance converted in USD
     if (tokenAddresses.length == 1)
       return ethBalance;
 
@@ -576,11 +580,11 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     uint256 fundManagerTotalCut // fm's total cut of the profits (in `depositToken`)
   ) {
     fundValue = calculateFundValue();
-    // The total amount of ether currently deposited into the fund, takes into account the total ether
-    // withdrawn by investors as well as ether withdrawn by the fund manager
+    // The total amount of USD currently deposited into the fund, takes into account the total USD
+    // withdrawn by investors as well as USD withdrawn by the fund manager
     // NOTE: value can be negative if the manager performs well and investors withdraw more
-    // ether than they deposited
-    int256 curTotalUSDDeposited = int256(totalUSDDeposited) - int256(totalEtherWithdrawn.add(fundManagerCashedOut));
+    // USD than they deposited
+    int256 curTotalUSDDeposited = int256(totalUSDDeposited) - int256(totalUSDWithdrawn.add(fundManagerCashedOut));
 
     // If profit < 0, the fund managers totalCut and remainingCut are 0
     if (int256(fundValue) <= curTotalUSDDeposited) {
@@ -630,12 +634,12 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   /**
   * @dev Calculates the funds profit
   *
-  * @return The funds profit in deposit token (Ether)
+  * @return The funds profit in deposit token (USD)
   */
   function calculateFundProfit() public view returns (int256) {
     uint256 fundValue = calculateFundValue();
 
-    return int256(fundValue) + int256(totalEtherWithdrawn) - int256(totalUSDDeposited);
+    return int256(fundValue) + int256(totalUSDWithdrawn) - int256(totalUSDDeposited);
   }
 
   // This method was added to easily record the funds token balances, may (should?) be removed in the future
