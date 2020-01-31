@@ -1,18 +1,18 @@
 pragma solidity ^0.4.24;
 
 
-import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../zeppelin-solidity/contracts/math/SafeMath.sol";
-import "../zeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
+import "../../zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../zeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../zeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
 
-import "../paraswap/interfaces/ParaswapInterface.sol";
-import "../paraswap/interfaces/IPriceFeed.sol";
-import "../paraswap/interfaces/IParaswapParams.sol";
+import "../../paraswap/interfaces/ParaswapInterface.sol";
+import "../../paraswap/interfaces/IPriceFeed.sol";
+import "../../paraswap/interfaces/IParaswapParams.sol";
 
-import "../bancor/interfaces/IGetBancorAddressFromRegistry.sol";
-import "../bancor/interfaces/BancorNetworkInterface.sol";
-import "../bancor/interfaces/PathFinderInterface.sol";
-import "../bancor/interfaces/IGetRatioForBancorAssets.sol";
+import "../../bancor/interfaces/IGetBancorAddressFromRegistry.sol";
+import "../../bancor/interfaces/BancorNetworkInterface.sol";
+import "../../bancor/interfaces/PathFinderInterface.sol";
+import "../../bancor/interfaces/IGetRatioForBancorAssets.sol";
 
 
 import "../interfaces/ExchangePortalInterface.sol";

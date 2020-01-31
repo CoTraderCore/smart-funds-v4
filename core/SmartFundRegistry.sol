@@ -1,11 +1,11 @@
 pragma solidity ^0.4.24;
 
-import "./SmartFundETH.sol";
-import "./SmartFundUSD.sol";
-import "../interfaces/PermittedExchangesInterface.sol";
-import "../interfaces/PermittedPoolsInterface.sol";
-import "../interfaces/PermittedStabelsInterface.sol";
-import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../funds/SmartFundETH.sol";
+import "../funds/SmartFundUSD.sol";
+import "./interfaces/PermittedExchangesInterface.sol";
+import "./interfaces/PermittedPoolsInterface.sol";
+import "./interfaces/PermittedStabelsInterface.sol";
+import "../../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /*
 * The SmartFundRegistry is used to manage the creation and permissions of SmartFund contracts
