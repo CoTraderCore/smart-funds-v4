@@ -2,6 +2,8 @@ pragma solidity ^0.4.24;
 
 import "../interfaces/SmartFundInterface.sol";
 import "../interfaces/PermittedPoolsInterface.sol";
+import "../interfaces/PermittedStabelsInterface.sol";
+import "../interfaces/PermittedExchangesInterface.sol";
 
 /*
   The SmartFund contract is what holds all the tokens and ether, and contains all the logic
@@ -686,6 +688,16 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     require(permittedExchanges.permittedAddresses(_newExchangePortalAddress));
 
     exchangePortal = ExchangePortalInterface(_newExchangePortalAddress);
+  }
+
+  /**
+  * @dev Sets new stableCoinAddress
+  *
+  * @param _stableCoinAddress    New stable address
+  */
+  function changeStableCoinAddress(uint256 _stableCoinAddress) external onlyOwner {
+    require(permittedStabels.permittedAddresses(_stableCoinAddress));
+    stableCoinAddress = _stableCoinAddress;
   }
 
   /**

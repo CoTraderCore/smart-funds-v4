@@ -68,7 +68,7 @@ contract SmartFundRegistry is Ownable {
   *
   * @param _name               The name of the new fund
   * @param _successFee         The fund managers success fee
-  * @param _isStableBasedFund  true for USD base fund, false for ETH base 
+  * @param _isStableBasedFund  true for USD base fund, false for ETH base
   */
   function createSmartFund(string _name, uint256 _successFee, bool _isStableBasedFund) public {
 
@@ -175,6 +175,7 @@ contract SmartFundRegistry is Ownable {
   * @param _stableCoinAddress    New stable address
   */
   function changeStableCoinAddress(uint256 _stableCoinAddress) external onlyOwner {
+    require(permittedStabels.permittedAddresses(_stableCoinAddress));
     stableCoinAddress = _stableCoinAddress;
   }
 

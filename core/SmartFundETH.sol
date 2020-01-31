@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 
 import "../interfaces/SmartFundInterface.sol";
 import "../interfaces/PermittedPoolsInterface.sol";
+import "../interfaces/PermittedExchangesInterface.sol";
 
 /*
   The SmartFund contract is what holds all the tokens and ether, and contains all the logic
