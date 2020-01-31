@@ -1,12 +1,11 @@
 pragma solidity ^0.4.24;
 
-import "../interfaces/PermittedPoolsInterface.sol";
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /*
   The PermittedPools contract determines which addresses are permitted
 */
-contract PermittedPools is PermittedPoolsInterface, Ownable {
+contract PermittedPools is Ownable {
   event NewPoolsEnabled(address newPools, bool enabled);
   // Mapping to permitted PoolPortal addresses
   mapping (address => bool) public permittedAddresses;

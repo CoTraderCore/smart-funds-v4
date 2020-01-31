@@ -18,6 +18,9 @@ const BANCOR_ETH_WRAPPER = ""
 const PRICE_FEED_ADDRESS = ""
 const PLATFORM_FEE = 1000
 
+const STABLE_COIN_ADDRESS = ""
+
+
 
 module.exports = (deployer, network, accounts) => {
   deployer
@@ -51,6 +54,7 @@ module.exports = (deployer, network, accounts) => {
       ExchangePortal.address,
       PermittedExchanges.address,
       PermittedPools.address,
-      PoolPortal.address
+      PoolPortal.address,
+      STABLE_COIN_ADDRESS
     ))
 }

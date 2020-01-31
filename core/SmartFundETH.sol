@@ -17,11 +17,15 @@ import "../interfaces/PermittedPoolsInterface.sol";
   the public may audit the new contract code to be assured that the new exchange portal does
   not allow the manager to act maliciously with the funds holdings.
 */
-contract SmartFund is SmartFundInterface, Ownable, ERC20 {
+
+/*
+  Note: this smart fund make core operations like deposit, calculate fund value etc in ETH
+*/
+contract SmartFundETH is SmartFundInterface, Ownable, ERC20 {
   using SafeMath for uint256;
   using SafeERC20 for ERC20;
 
-  uint public version = 3;
+  uint public version = 4;
 
   // The Interface of the Exchange Portal
   ExchangePortalInterface public exchangePortal;

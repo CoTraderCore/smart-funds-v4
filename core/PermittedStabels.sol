@@ -3,17 +3,17 @@ pragma solidity ^0.4.24;
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /*
-  The PermittedExchanges contract determines which addresses are permitted
+  The PermittedPools contract determines which addresses are permitted
 */
-contract PermittedExchanges is Ownable {
-  event NewExchangeEnabled(address newExchange, bool enabled);
-  // Mapping to permitted ExchangePortal addresses
+contract PermittedStabels is Ownable {
+  event NewPoolsEnabled(address newPools, bool enabled);
+  // Mapping to permitted stable coin addresses
   mapping (address => bool) public permittedAddresses;
 
   /**
   * @dev contructor
   *
-  * @param _address    The initial Exchange address to be permitted
+  * @param _address    The initial stable coin address to be permitted
   */
   constructor(address _address) public {
     _enableAddress(_address, true);
@@ -21,12 +21,12 @@ contract PermittedExchanges is Ownable {
 
 
   /**
-  * @dev Completes the process of adding a new exchange to permittedAddresses
+  * @dev Completes the process of adding a new stable coin to permittedAddresses
   *
   * @param _newAddress    The new address to permit
   */
-  function addNewExchange(address _newAddress) public onlyOwner {
-    // Set the exchange as permitted
+  function addNewPoolAddress(address _newAddress) public onlyOwner {
+    // Set the stable coin as permitted
     _enableAddress(_newAddress, true);
   }
 
@@ -49,6 +49,6 @@ contract PermittedExchanges is Ownable {
   function _enableAddress(address _newAddress, bool _enabled) private {
     permittedAddresses[_newAddress] = _enabled;
 
-    emit NewExchangeEnabled(_newAddress, _enabled);
+    emit NewPoolsEnabled(_newAddress, _enabled);
   }
 }
