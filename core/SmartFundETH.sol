@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "../interfaces/SmartFundInterface.sol";
+import "../interfaces/SmartFundETHInterface.sol";
 import "../interfaces/PermittedPoolsInterface.sol";
 import "../interfaces/PermittedExchangesInterface.sol";
 
@@ -22,7 +22,7 @@ import "../interfaces/PermittedExchangesInterface.sol";
 /*
   Note: this smart fund make core operations like deposit, calculate fund value etc in ETH
 */
-contract SmartFundETH is SmartFundInterface, Ownable, ERC20 {
+contract SmartFundETH is SmartFundETHInterface, Ownable, ERC20 {
   using SafeMath for uint256;
   using SafeERC20 for ERC20;
 

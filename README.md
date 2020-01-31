@@ -18,7 +18,7 @@ SmartFund[] public smartFunds;
 
 and this for v > 3
 
-address[] public smartFunds;
+SmartFundInterface[] public smartFunds;
 
 will broke api
 so need add wrapper in api

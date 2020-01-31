@@ -5,16 +5,13 @@ import "./SmartFundUSD.sol";
 import "../interfaces/PermittedExchangesInterface.sol";
 import "../interfaces/PermittedPoolsInterface.sol";
 import "../interfaces/PermittedStabelsInterface.sol";
-import "../interfaces/SmartFundInterface.sol";
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /*
 * The SmartFundRegistry is used to manage the creation and permissions of SmartFund contracts
 */
 contract SmartFundRegistry is Ownable {
-  // for compatibility between ETH and USD funds
-  SmartFundInterface SmartFund;
-  SmartFund[] public smartFunds;
+  address[] public smartFunds;
 
   // The Smart Contract which stores the addresses of all the authorized Exchange Portals
   PermittedExchangesInterface public permittedExchanges;
@@ -53,13 +50,14 @@ contract SmartFundRegistry is Ownable {
     address _exchangePortalAddress,
     address _permittedExchangesAddress,
     address _permittedPoolAddress,
+    address _permittedStabels,
     address _poolPortalAddress
   ) public {
     platformFee = _platformFee;
     exchangePortalAddress = _exchangePortalAddress;
     permittedExchanges = PermittedExchangesInterface(_permittedExchangesAddress);
     permittedPools = PermittedPoolsInterface(_permittedPoolAddress);
-    permittedStabels = PermittedStabels(_permittedStabels);
+    permittedStabels = PermittedStabelsInterface(_permittedStabels);
     poolPortalAddress = _poolPortalAddress;
   }
 
@@ -71,12 +69,11 @@ contract SmartFundRegistry is Ownable {
   * @param _isStableBasedFund  true for USD base fund, false for ETH base
   */
   function createSmartFund(string _name, uint256 _successFee, bool _isStableBasedFund) public {
-
     // Require that the funds success fee be less than the maximum allowed amount
     require(_successFee <= maximumSuccessFee);
 
     address owner = msg.sender;
-    SmartFund smartFund;
+    address smartFund;
 
     if(_isStableBasedFund){
       SmartFundUSD smartFundUSD = new SmartFundUSD(
@@ -90,10 +87,9 @@ contract SmartFundRegistry is Ownable {
         address(permittedPools),
         address(permittedStabels),
         poolPortalAddress,
-        _isStableBasedFund,
         stableCoinAddress
       );
-      smartFund = SmartFund(smartFundUSD);
+      smartFund = address(smartFundUSD);
     }else{
       SmartFundETH smartFundETH = new SmartFundETH(
         owner,
@@ -106,11 +102,11 @@ contract SmartFundRegistry is Ownable {
         address(permittedPools),
         poolPortalAddress
       );
-      smartFund = SmartFund(smartFundETH);
+      smartFund = address(smartFundETH);
     }
 
     smartFunds.push(smartFund);
-    emit SmartFundAdded(address(smartFund), owner);
+    emit SmartFundAdded(smartFund, owner);
   }
 
   function totalSmartFunds() public view returns (uint256) {
@@ -174,7 +170,7 @@ contract SmartFundRegistry is Ownable {
   *
   * @param _stableCoinAddress    New stable address
   */
-  function changeStableCoinAddress(uint256 _stableCoinAddress) external onlyOwner {
+  function changeStableCoinAddress(address _stableCoinAddress) external onlyOwner {
     require(permittedStabels.permittedAddresses(_stableCoinAddress));
     stableCoinAddress = _stableCoinAddress;
   }

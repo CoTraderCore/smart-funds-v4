@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "../interfaces/SmartFundInterface.sol";
+import "../interfaces/SmartFundUSDInterface.sol";
 import "../interfaces/PermittedPoolsInterface.sol";
 import "../interfaces/PermittedStabelsInterface.sol";
 import "../interfaces/PermittedExchangesInterface.sol";
@@ -23,7 +23,7 @@ import "../interfaces/PermittedExchangesInterface.sol";
 /*
   Note: this smart fund make core operations like deposit, calculate fund value etc in USD
 */
-contract SmartFund is SmartFundInterface, Ownable, ERC20 {
+contract SmartFundUSD is SmartFundUSDInterface, Ownable, ERC20 {
   using SafeMath for uint256;
   using SafeERC20 for ERC20;
 
@@ -40,6 +40,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   // The Smart Contract which stores the addresses of all the authorized Pools Portals
   PermittedPoolsInterface public permittedPools;
+
+  // The Smart Contract which stores the addresses of all the authorized stable coins
+  PermittedStabelsInterface public permittedStabels;
 
   // For ERC20 compliance
   string public name;
@@ -173,7 +176,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     exchangePortal = ExchangePortalInterface(_exchangePortalAddress);
     permittedExchanges = PermittedExchangesInterface(_permittedExchangesAddress);
     permittedPools = PermittedPoolsInterface(_permittedPoolsAddress);
-    permittedStabels = PermittedStabels(_permittedStabels);
+    permittedStabels = PermittedStabelsInterface(_permittedStabels);
     poolPortal = PoolPortalInterface(_poolPortalAddress);
 
     // Initial stable coin address
@@ -197,7 +200,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     require(depositAmount > 0);
 
     // Transfer stable coin from sender
-    require(ERC20(stableCoinAddress).transferFrom(msg.sender, depositAmount));
+    require(ERC20(stableCoinAddress).transferFrom(msg.sender, address(this), depositAmount));
 
     totalUSDDeposited += depositAmount;
 
@@ -699,7 +702,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   *
   * @param _stableCoinAddress    New stable address
   */
-  function changeStableCoinAddress(uint256 _stableCoinAddress) external onlyOwner {
+  function changeStableCoinAddress(address _stableCoinAddress) external onlyOwner {
     require(permittedStabels.permittedAddresses(_stableCoinAddress));
     stableCoinAddress = _stableCoinAddress;
   }

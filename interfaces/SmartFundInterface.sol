@@ -14,11 +14,6 @@ contract SmartFundInterface {
 
   // how many shares belong to each address
   mapping (address => uint256) public addressToShares;
-
-  // deposit `amount` of tokens.
-  // returns number of shares the user receives
-  function deposit() external payable returns (uint256);
-
   // sends percentage of fund tokens to the user
   // function withdraw() external;
   function withdraw(uint256 _percentageWithdraw) external;
