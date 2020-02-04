@@ -4,6 +4,7 @@ contract SmartFundUSDFactoryInterface {
     string  _name,
     uint256 _successFee,
     uint256 _platformFee,
+    address _platfromAddress,
     address _exchangePortalAddress,
     address _permittedExchanges,
     address _permittedPools,
