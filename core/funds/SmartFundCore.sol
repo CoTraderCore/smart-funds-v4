@@ -24,7 +24,7 @@ import "../../zeppelin-solidity/contracts/math/SafeMath.sol";
 import "../../zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 
 
-contract SmartFundCore is SmartFundOverrideInterface, Ownable {
+contract SmartFundCore is SmartFundOverrideInterface, Ownable, ERC20 {
   using SafeMath for uint256;
   using SafeERC20 for ERC20;
 

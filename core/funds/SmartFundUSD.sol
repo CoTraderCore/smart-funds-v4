@@ -9,7 +9,7 @@ import "../interfaces/PermittedStabelsInterface.sol";
   Note: this smart fund smart fund inherits smart fund core and make core operations like deposit,
   calculate fund value etc in USD
 */
-contract SmartFundUSD is SmartFundUSDInterface, Ownable, ERC20, SmartFundCore {
+contract SmartFundUSD is SmartFundUSDInterface, SmartFundCore {
   using SafeMath for uint256;
   using SafeERC20 for ERC20;
 
@@ -140,5 +140,15 @@ contract SmartFundUSD is SmartFundUSDInterface, Ownable, ERC20, SmartFundCore {
 
     // Sum ETH + ERC20
     return ethBalance + tokensValue;
+  }
+
+  /**
+  * @dev Sets new stableCoinAddress
+  *
+  * @param _stableCoinAddress    New stable address
+  */
+  function changeStableCoinAddress(address _stableCoinAddress) external onlyOwner {
+    require(permittedStabels.permittedAddresses(_stableCoinAddress));
+    stableCoinAddress = _stableCoinAddress;
   }
 }

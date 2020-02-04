@@ -7,7 +7,7 @@ import "../interfaces/SmartFundETHInterface.sol";
   Note: this smart fund inherits smart fund core and make core operations like deposit,
   calculate fund value etc in ETH
 */
-contract SmartFundETH is SmartFundETHInterface, Ownable, ERC20, SmartFundCore {
+contract SmartFundETH is SmartFundETHInterface, SmartFundCore {
   using SafeMath for uint256;
   using SafeERC20 for ERC20;
 
