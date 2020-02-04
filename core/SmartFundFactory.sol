@@ -62,7 +62,7 @@ contract SmartFundFactory is Ownable {
   *
   * @param _name               The name of the new fund
   * @param _successFee         The fund managers success fee
-  * @param _platformFee        Fee of platform 
+  * @param _platformFee        Fee of platform
   * @param _isStableBasedFund  true for USD base fund, false for ETH base
   * @param _owner              address of creator fund
   */
@@ -76,7 +76,7 @@ contract SmartFundFactory is Ownable {
   public
   returns(address)
   {
-    // Require that the funds success fee be less than the maximum allowed amount
+    address smartFund;
     if(_isStableBasedFund){
       SmartFundUSD smartFundUSD = new SmartFundUSD(
         _owner,

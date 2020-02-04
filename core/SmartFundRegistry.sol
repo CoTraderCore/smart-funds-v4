@@ -96,6 +96,39 @@ contract SmartFundRegistry is Ownable {
     owner.transfer(address(this).balance);
   }
 
+  /**
+  * @dev Sets a new default ExchangePortal address
+  *
+  * @param _newExchangePortalAddress    Address of the new exchange portal to be set
+  */
+  function setExchangePortalAddress(address _newExchangePortalAddress) public onlyOwner {
+    // Require that the new exchange portal is permitted by permittedExchanges
+    require(permittedExchanges.permittedAddresses(_newExchangePortalAddress));
+    exchangePortalAddress = _newExchangePortalAddress;
+  }
+
+  /**
+  * @dev Sets a new default Portal Portal address
+  *
+  * @param _poolPortalAddress    Address of the new pool portal to be set
+  */
+  function setPoolPortalAddress (address _poolPortalAddress) external onlyOwner {
+    // Require that the new pool portal is permitted by permittedPools
+    require(permittedPools.permittedAddresses(_poolPortalAddress));
+
+    poolPortalAddress = _poolPortalAddress;
+  }
+
+  /**
+  * @dev Sets new stableCoinAddress
+  *
+  * @param _stableCoinAddress    New stable address
+  */
+  function changeStableCoinAddress(address _stableCoinAddress) external onlyOwner {
+    require(permittedStabels.permittedAddresses(_stableCoinAddress));
+    stableCoinAddress = _stableCoinAddress;
+  }
+
   // Fallback payable function in order to receive ether when fund manager withdraws their cut
   function() public payable {}
 
