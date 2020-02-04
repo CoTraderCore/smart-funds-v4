@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "../funds/SmartFundETH.sol";
-import "../funds/SmartFundUSD.sol";
+import "./funds/SmartFundETH.sol";
+import "./funds/SmartFundUSD.sol";
 import "./interfaces/PermittedExchangesInterface.sol";
 import "./interfaces/PermittedPoolsInterface.sol";
 import "./interfaces/PermittedStabelsInterface.sol";
@@ -44,6 +44,7 @@ contract SmartFundRegistry is Ownable {
   * @param _permittedPoolAddress         Address of the permittedPool contract
   * @param _permittedStabels             Address of the permittesStabels contract
   * @param _poolPortalAddress            Address of the initial PoolPortal contract
+  * @param _stableCoinAddress            Address of the stable coin
   */
   constructor(
     uint256 _platformFee,
@@ -51,7 +52,8 @@ contract SmartFundRegistry is Ownable {
     address _permittedExchangesAddress,
     address _permittedPoolAddress,
     address _permittedStabels,
-    address _poolPortalAddress
+    address _poolPortalAddress,
+    address _stableCoinAddress
   ) public {
     platformFee = _platformFee;
     exchangePortalAddress = _exchangePortalAddress;
@@ -59,6 +61,7 @@ contract SmartFundRegistry is Ownable {
     permittedPools = PermittedPoolsInterface(_permittedPoolAddress);
     permittedStabels = PermittedStabelsInterface(_permittedStabels);
     poolPortalAddress = _poolPortalAddress;
+    stableCoinAddress = _stableCoinAddress;
   }
 
   /**
