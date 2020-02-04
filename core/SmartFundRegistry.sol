@@ -39,20 +39,20 @@ contract SmartFundRegistry is Ownable {
   * @dev contructor
   *
   * @param _platformFee                  Initial platform fee
-  * @param _exchangePortalAddress        Address of the initial ExchangePortal contract
   * @param _permittedExchangesAddress    Address of the permittedExchanges contract
+  * @param _exchangePortalAddress        Address of the initial ExchangePortal contract
   * @param _permittedPoolAddress         Address of the permittedPool contract
-  * @param _permittedStabels             Address of the permittesStabels contract
   * @param _poolPortalAddress            Address of the initial PoolPortal contract
+  * @param _permittedStabels             Address of the permittesStabels contract
   * @param _stableCoinAddress            Address of the stable coin
   */
   constructor(
     uint256 _platformFee,
-    address _exchangePortalAddress,
     address _permittedExchangesAddress,
+    address _exchangePortalAddress,
     address _permittedPoolAddress,
-    address _permittedStabels,
     address _poolPortalAddress,
+    address _permittedStabels,
     address _stableCoinAddress
   ) public {
     platformFee = _platformFee;
