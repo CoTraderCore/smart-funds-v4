@@ -9,7 +9,7 @@ pragma solidity ^0.4.24;
   SmartFund will be able to upgrade to a new exchange portal, and trade a wider variety of assets
   with a wider variety of exchanges. The SmartFund is also connected to a PermittedExchanges contract,
   which determines which exchange portals the SmartFund is allowed to connect to, restricting
-  the fund owners ability to connect to a potentially malicious contract. 
+  the fund owners ability to connect to a potentially malicious contract.
 */
 
 
@@ -17,15 +17,22 @@ import "../interfaces/ExchangePortalInterface.sol";
 import "../interfaces/PoolPortalInterface.sol";
 import "../interfaces/PermittedExchangesInterface.sol";
 import "../interfaces/PermittedPoolsInterface.sol";
+import "../interfaces/SmartFundOverrideInterface.sol";
 import "../../zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "../../zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../../zeppelin-solidity/contracts/math/SafeMath.sol";
 import "../../zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 
 
-contract SmartFundCore is Ownable {
+contract SmartFundCore is SmartFundOverrideInterface, Ownable {
   using SafeMath for uint256;
   using SafeERC20 for ERC20;
+
+  // Total amount of ether or stable deposited by all users
+  uint256 public totalWeiDeposited = 0;
+
+  // Total amount of ether or stable withdrawn by all users
+  uint256 public totalWeiWithdrawn = 0;
 
   // The Interface of the Exchange Portal
   ExchangePortalInterface public exchangePortal;
@@ -169,6 +176,44 @@ contract SmartFundCore is Ownable {
     // Transfer ether to _withdrawAddress
     uint256 etherPayoutAmount = (address(this).balance).mul(_mul).div(_div);
     _withdrawAddress.transfer(etherPayoutAmount);
+  }
+
+  /**
+  * @dev Withdraws users fund holdings, sends (userShares/totalShares) of every held token
+  * to msg.sender, defaults to 100% of users shares.
+  *
+  * @param _percentageWithdraw    The percentage of the users shares to withdraw.
+  */
+  function withdraw(uint256 _percentageWithdraw) external {
+    require(totalShares != 0);
+
+    uint256 percentageWithdraw = (_percentageWithdraw == 0) ? TOTAL_PERCENTAGE : _percentageWithdraw;
+
+    uint256 addressShares = addressToShares[msg.sender];
+
+    uint256 numberOfWithdrawShares = addressShares.mul(percentageWithdraw).div(TOTAL_PERCENTAGE);
+
+    uint256 fundManagerCut;
+    uint256 fundValue;
+
+    // Withdraw the users share minus the fund manager's success fee
+    (fundManagerCut, fundValue, ) = calculateFundManagerCut();
+
+    uint256 withdrawShares = numberOfWithdrawShares.mul(fundValue.sub(fundManagerCut)).div(fundValue);
+
+    _withdraw(withdrawShares, totalShares, msg.sender);
+
+    // Store the value we are withdrawing in ether
+    uint256 valueWithdrawn = fundValue.mul(withdrawShares).div(totalShares);
+
+    totalWeiWithdrawn = totalWeiWithdrawn.add(valueWithdrawn);
+    addressesNetDeposit[msg.sender] -= int256(valueWithdrawn);
+
+    // Subtract from total shares the number of withdrawn shares
+    totalShares = totalShares.sub(numberOfWithdrawShares);
+    addressToShares[msg.sender] = addressToShares[msg.sender].sub(numberOfWithdrawShares);
+
+    emit Withdraw(msg.sender, numberOfWithdrawShares, totalShares);
   }
 
   /**
@@ -393,6 +438,109 @@ contract SmartFundCore is Ownable {
     _totalShares = totalShares;
     _tokenAddresses = tokenAddresses;
     _successFee = successFee;
+  }
+
+  /**
+  * @dev Calculates the funds profit
+  *
+  * @return The funds profit in deposit token (Ether)
+  */
+  function calculateFundProfit() public view returns (int256) {
+    uint256 fundValue = calculateFundValue();
+
+    return int256(fundValue) + int256(totalWeiWithdrawn) - int256(totalWeiDeposited);
+  }
+
+  /**
+  * @dev Calculates the amount of shares received according to ether deposited
+  *
+  * @param _amount    Amount of ether to convert to shares
+  *
+  * @return Amount of shares to be received
+  */
+  function calculateDepositToShares(uint256 _amount) public view returns (uint256) {
+    uint256 fundManagerCut;
+    uint256 fundValue;
+
+    // If there are no shares in the contract, whoever deposits owns 100% of the fund
+    // we will set this to 10^18 shares, but this could be any amount
+    if (totalShares == 0)
+      return INITIAL_SHARES;
+
+    (fundManagerCut, fundValue, ) = calculateFundManagerCut();
+
+    uint256 fundValueBeforeDeposit = fundValue.sub(_amount).sub(fundManagerCut);
+
+    if (fundValueBeforeDeposit == 0)
+      return 0;
+
+    return _amount.mul(totalShares).div(fundValueBeforeDeposit);
+
+  }
+
+
+  /**
+  * @dev Calculates the fund managers cut, depending on the funds profit and success fee
+  *
+  * @return fundManagerRemainingCut    The fund managers cut that they have left to withdraw
+  * @return fundValue                  The funds current value
+  * @return fundManagerTotalCut        The fund managers total cut of the profits until now
+  */
+  function calculateFundManagerCut() public view returns (
+    uint256 fundManagerRemainingCut, // fm's cut of the profits that has yet to be cashed out (in `depositToken`)
+    uint256 fundValue, // total value of fund (in `depositToken`)
+    uint256 fundManagerTotalCut // fm's total cut of the profits (in `depositToken`)
+  ) {
+    fundValue = calculateFundValue();
+    // The total amount of ether currently deposited into the fund, takes into account the total ether
+    // withdrawn by investors as well as ether withdrawn by the fund manager
+    // NOTE: value can be negative if the manager performs well and investors withdraw more
+    // ether than they deposited
+    int256 curtotalWeiDeposited = int256(totalWeiDeposited) - int256(totalWeiWithdrawn.add(fundManagerCashedOut));
+
+    // If profit < 0, the fund managers totalCut and remainingCut are 0
+    if (int256(fundValue) <= curtotalWeiDeposited) {
+      fundManagerTotalCut = 0;
+      fundManagerRemainingCut = 0;
+    } else {
+      // calculate profit. profit = current fund value - total deposited + total withdrawn + total withdrawn by fm
+      uint256 profit = uint256(int256(fundValue) - curtotalWeiDeposited);
+      // remove the money already taken by the fund manager and take percentage
+      fundManagerTotalCut = profit.mul(successFee).div(TOTAL_PERCENTAGE);
+      fundManagerRemainingCut = fundManagerTotalCut.sub(fundManagerCashedOut);
+    }
+  }
+
+  /**
+  * @dev Allows the fund manager to withdraw their cut of the funds profit
+  */
+  function fundManagerWithdraw() public onlyOwner {
+    uint256 fundManagerCut;
+    uint256 fundValue;
+
+    (fundManagerCut, fundValue, ) = calculateFundManagerCut();
+
+    uint256 platformCut = (platformFee == 0) ? 0 : fundManagerCut.mul(platformFee).div(TOTAL_PERCENTAGE);
+
+    _withdraw(platformCut, fundValue, platformAddress);
+    _withdraw(fundManagerCut - platformCut, fundValue, msg.sender);
+
+    fundManagerCashedOut = fundManagerCashedOut.add(fundManagerCut);
+  }
+
+  // calculate the current value of an address's shares in the fund
+  function calculateAddressValue(address _address) public view returns (uint256) {
+    if (totalShares == 0)
+      return 0;
+
+    return calculateFundValue().mul(addressToShares[_address]).div(totalShares);
+  }
+
+  // calculate the net profit/loss for an address in this fund
+  function calculateAddressProfit(address _address) public view returns (int256) {
+    uint256 currentAddressValue = calculateAddressValue(_address);
+
+    return int256(currentAddressValue) - addressesNetDeposit[_address];
   }
 
   // This method was added to easily record the funds token balances, may (should?) be removed in the future
