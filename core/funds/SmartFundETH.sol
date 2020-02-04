@@ -111,4 +111,13 @@ contract SmartFundETH is SmartFundETHInterface, SmartFundCore {
     // Sum ETH + ERC20
     return ethBalance + tokensValue;
   }
+
+  // return token value in ETH 
+  function getTokenValue(ERC20 _token) public view returns (uint256) {
+    if (_token == ETH_TOKEN_ADDRESS)
+      return address(this).balance;
+    uint256 tokenBalance = _token.balanceOf(address(this));
+
+    return exchangePortal.getValue(_token, ETH_TOKEN_ADDRESS, tokenBalance);
+  }
 }

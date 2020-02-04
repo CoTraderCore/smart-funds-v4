@@ -370,14 +370,6 @@ contract SmartFundCore is SmartFundOverrideInterface, Ownable, ERC20 {
     return tokenAddresses;
   }
 
-  function getTokenValue(ERC20 _token) public view returns (uint256) {
-    if (_token == ETH_TOKEN_ADDRESS)
-      return address(this).balance;
-    uint256 tokenBalance = _token.balanceOf(address(this));
-
-    return exchangePortal.getValue(_token, ETH_TOKEN_ADDRESS, tokenBalance);
-  }
-
   /**
   * @dev Adds a token to tokensTraded if it's not already there
   * @param _token    The token to add
