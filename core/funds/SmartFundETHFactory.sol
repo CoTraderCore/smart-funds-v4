@@ -1,5 +1,4 @@
 // due eip-170 error we should create 2 factory one for ETH another for USD
-// due eip-170 error we should create 2 factory one for ETH another for USD
 pragma solidity ^0.4.24;
 
 import "./SmartFundETH.sol";
