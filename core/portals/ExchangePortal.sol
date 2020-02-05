@@ -240,7 +240,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     address destination = ERC20(destinationToken) == ETH_TOKEN_ADDRESS ? BancorEtherToken : destinationToken;
 
     // Get Bancor tokens path
-    address[] memory path = pathFinder.generatePath(source, destinationToken);
+    address[] memory path = pathFinder.generatePath(source, destination);
 
     // Convert addresses to ERC20
     ERC20[] memory pathInERC20 = new ERC20[](path.length);
