@@ -142,17 +142,24 @@ contract SmartFundUSD is SmartFundUSDInterface, SmartFundCore {
     return ethBalance + tokensValue;
   }
 
-  // return value in stable 
+  // return value in stable
   function getTokenValue(ERC20 _token) public view returns (uint256) {
+    // get ETH in USD
     if (_token == ETH_TOKEN_ADDRESS){
       return exchangePortal.getValue(
         _token,
         stableCoinAddress,
         address(this).balance);
     }
-
-    uint256 tokenBalance = _token.balanceOf(address(this));
-    return exchangePortal.getValue(_token, stableCoinAddress, tokenBalance);
+    // get current USD
+    else if(_token == ERC20(stableCoinAddress)){
+      return _token.balanceOf(address(this));
+    }
+    // get ERC20 in USD
+    else{
+      uint256 tokenBalance = _token.balanceOf(address(this));
+      return exchangePortal.getValue(_token, stableCoinAddress, tokenBalance);
+    }
   }
 
   /**
