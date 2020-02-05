@@ -133,7 +133,7 @@ contract SmartFundUSD is SmartFundUSDInterface, SmartFundCore {
     // get all ERC20 addresses and balance
     for (uint256 i = 1; i < tokenAddresses.length; i++) {
       // no need get current USD token
-      if(tokenAddresses[i] != ERC20(stableCoinAddress)){
+      if(tokenAddresses[i] != stableCoinAddress){
         fromAddresses[i-1] = tokenAddresses[i];
         amounts[i-1] = ERC20(tokenAddresses[i]).balanceOf(address(this));
       }
@@ -143,7 +143,7 @@ contract SmartFundUSD is SmartFundUSDInterface, SmartFundCore {
     uint256 tokensValue = exchangePortal.getTotalValue(fromAddresses, amounts, stableCoinAddress);
 
     // Get curernt USD token balance
-    uint256 currentUSD = ERC20(stableCoinAddress).balanceOf(address(this))
+    uint256 currentUSD = ERC20(stableCoinAddress).balanceOf(address(this));
 
     // Sum ETH in USD + Current USD Token + ERC20 in USD
     return ethBalance + currentUSD + tokensValue;
