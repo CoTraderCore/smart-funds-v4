@@ -235,8 +235,9 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
       bancorRegistry.getBancorContractAddresByName("BancorNetworkPathFinder")
     );
 
-    // Change source to Bancor ETH wrapper
+    // Change source and destination to Bancor ETH wrapper
     address source = ERC20(sourceToken) == ETH_TOKEN_ADDRESS ? BancorEtherToken : sourceToken;
+    address destination = ERC20(destinationToken) == ETH_TOKEN_ADDRESS ? BancorEtherToken : destinationToken;
 
     // Get Bancor tokens path
     address[] memory path = pathFinder.generatePath(source, destinationToken);
