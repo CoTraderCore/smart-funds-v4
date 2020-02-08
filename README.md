@@ -1,4 +1,4 @@
-# smart-funds-v4 (not finished)
+# smart-funds-v4
 
 ```
 Description: Added stable coins based funds
